@@ -17,6 +17,9 @@ var config       = require('config.json');
 var browserify = require('browserify');
 var watchify = require('watchify');
 var source = require('vinyl-source-stream');
+// Optimizes images
+var imagemin   = require('gulp-imagemin');
+var changed    = require('gulp-changed');
 
 function handleErrors() {
   var args = Array.prototype.slice.call(arguments);
@@ -58,9 +61,17 @@ gulp.task('browserify', function() {
       .pipe(gulp.dest('./Timber/assets/'));
 });
 
+gulp.task('images', function() {
+  return gulp.src('./lib/images/**')
+    .pipe(changed('./Timber/assets/')) // Ignore unchanged files
+    .pipe(imagemin()) // Optimize
+    .pipe(gulp.dest('./Timber/assets/'))
+});
+
 gulp.task('watch', function () {
   gulp.watch('./lib/scss/**/*.scss', ['sass']);
   gulp.watch('./lib/js/**/*.js', ['browserify']);
+  gulp.watch('lib/images/*.{jpg,jpeg,png,gif,svg}', ['images']);
 
   var watcher = watchify(browserify({
     // Specify the entry point of your app
@@ -77,4 +88,4 @@ gulp.task('watch', function () {
 });
  
 // Default gulp action when gulp is run
-gulp.task('default', ['shopifywatch', 'watch']);
+gulp.task('default', ['images', 'shopifywatch', 'watch']);
